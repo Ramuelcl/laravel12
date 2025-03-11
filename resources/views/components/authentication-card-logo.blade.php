@@ -1,5 +1,5 @@
 <!-- resources/views/components/authentication-card-logo.blade.php -->
-@props(['size' => 'mini', 'url' => '#', 'title' => true])
+@props(['size' => 'mini', 'url' => 'main', 'title' => true])
 
 @php
   // Validar y establecer el tamaño
