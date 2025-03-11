@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('content');
 
             // Definición de category_id y su clave foránea
-            $table->unsignedInteger('category_id')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
 
             // Definición de user_id y su clave foránea
