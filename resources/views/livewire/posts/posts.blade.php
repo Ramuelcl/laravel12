@@ -1,64 +1,114 @@
-<?php
-// resources/views/livewire/posts/posts.blade.php
-use App\Models\post\Post as Data;
+<?php // resources/views/livewire/posts/posts.blade.php
+
+use App\Models\Post\Post as Data;
+use App\Models\backend\Category;
 use Livewire\Volt\Component;
 use Illuminate\Support\Str;
 
 new class extends Component {
     public $fields = [
-        // title
-        "title" => ["Title", "table" => ["sortable" => true, "view" => true, "type" => "text"], "form" => ["type" => "text", "disabled" => false, "default" => ""]],
-        // content
-        "content" => ["Content", "table" => ["sortable" => true, "view" => true, "type" => "textarea"], "form" => ["type" => "textarea", "disabled" => false, "default" => ""]],
-        // category_id
-        "category_id" => ["Category", "table" => ["sortable" => false, "view" => true, "type" => "select"], "form" => ["type" => "select", "disabled" => false, "default" => "0"]],
-        // user_id
-        "user_id" => ["User", "table" => ["sortable" => true, "view" => true, "type" => "select"], "form" => ["type" => "select", "disabled" => false, "default" => ""]],
-        // state
-        "state" => ["Status", "table" => ["sortable" => true, "view" => true, "type" => "boolean"], "form" => ["type" => "select", "disabled" => false, "default" => ""]],
-        // created_at
-        "created_at" => ["Created At", "table" => ["sortable" => true, "view" => true, "type" => "date"], "form" => ["type" => "date", "disabled" => true, "default" => ""]],
+        "title" => [
+            "Title",
+            "table" => ["sortable" => true],
+            "form" => [
+                "type" => "text",
+                "placeholder" => "Ingrese el título", // Placeholder personalizado
+            ],
+        ],
+        "content" => [
+            "Content",
+            "table" => ["sortable" => false], // Deshabilitar ordenamiento para este campo
+            "form" => [
+                "type" => "textarea",
+                "placeholder" => "Ingrese el contenido", // Placeholder personalizado
+            ],
+        ],
+        "category_id" => [
+            "Category",
+            "table" => ["sortable" => true],
+            "form" => [
+                "type" => "select",
+                "placeholder" => "Seleccione una categoría", // Placeholder personalizado
+            ],
+        ],
+        "state" => [
+            "Status",
+            "table" => ["sortable" => true],
+            "form" => [
+                "type" => "select",
+                "hidden" => true,
+                "placeholder" => "", // Placeholder vacío
+            ],
+        ],
+        "user_id" => [
+            "User",
+            "table" => ["sortable" => true],
+            "form" => [
+                "type" => "text",
+                "hidden" => true,
+                "placeholder" => "", // Placeholder vacío
+            ],
+        ],
+        "created_at" => [
+            "Created At",
+            "table" => ["sortable" => true],
+            "form" => [
+                "type" => "date",
+                "disabled" => true,
+                "placeholder" => "", // Placeholder vacío
+            ],
+        ],
     ];
+
     public $crudl = "list"; // create, read, update, delete, list
     public $model = Data::class;
 
     public $titles, $tables, $forms;
     public $datas = [];
+    public $categorias = [];
+    public $selectedCategories = []; // Opciones seleccionadas
+    // Escuchar el evento "selected-updated"
+    protected $listeners = ["selected-updated" => "handleSelectedUpdated"];
     public $sortField = "title";
     public $sortDirection = "asc";
     public $formData = [];
 
+    // Método para manejar las opciones seleccionadas
+    public function handleSelectedUpdated($selected)
+    {
+        $this->selectedCategories = $selected;
+    }
+
     public function mount()
     {
-        $this->getData();
-        // Extraer los títulos y nombres de los campos
-        // $index = 0;
-        $this->titles = array_map(
-            function ($field, $key) {
-                //use (&$index)
-                return [
-                    "name" => $key,
-                    "title" => $field[0],
-                    // "index" => $index++,
-                ];
+        // Obtener las categorías desde la base de datos
+        $this->categorias = Category::pluck("name", "id")->toArray();
+        // dd($this->categorias);
+
+        $this->titles = array_column($this->fields, 0);
+        $this->tables = array_map(
+            function ($key, $field) {
+                return ["title" => $field[0], "data" => $field["table"]];
             },
-            $this->fields,
             array_keys($this->fields),
+            $this->fields,
         );
-        $this->tables = array_column($this->fields, "table");
-        $this->forms = array_column($this->fields, "form");
-
-        // dd($this->titles, $this->tables, $this->forms);
+        $this->forms = array_map(
+            function ($key, $field) {
+                return ["title" => $field[0], "data" => $field["form"]];
+            },
+            array_keys($this->fields),
+            $this->fields,
+        );
 
         $this->getData();
 
-        // Inicializar formData con valores por defecto
         foreach ($this->fields as $key => $field) {
-            if (isset($field["form"]["default"])) {
-                $this->formData[$key] = $field["form"]["default"];
-            } else {
-                $this->formData[$key] = "";
-            }
+            $this->formData[$key] = $field["form"]["default"] ?? null;
+        }
+        // Asignar el ID del usuario autenticado al campo `user_id`
+        if (auth()->check()) {
+            $this->formData["user_id"] = auth()->user()->id;
         }
     }
 
@@ -95,46 +145,48 @@ new class extends Component {
         $this->crudl = "list";
     }
 };
-
 ?>
+
 <div>
-  @if ($this->crudl === "list")
-    <div>
-      <button wire:click="addRecord" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+  @if ($crudl === "list")
+    <div class="pb-2">
+      <button wire:click="addRecord()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
         Agregar Registro
       </button>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">
         <thead
-          class="bg-neutral text-gray-700 dark:bg-neutral-800 dark:text-gray-300 text-xs uppercase font-semibold tracking-wide">
+          class="bg-neutral text-gray-700 dark:bg-neutral-800 dark:text-gray-300 -50 text-xs uppercase font-semibold tracking-wide">
           <tr>
-            {{-- @dd($this->titles) --}}
-            @foreach ($this->titles as $key => $title)
+            @foreach ($tables as $key => $table)
               <th
-                class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold cursor-pointer"
-                wire:click="sortBy('{{ $key }}')">
+                class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold {{ $table["data"]["sortable"] ? "cursor-pointer" : "" }}"
+                @if ($table["data"]["sortable"]) wire:click="sortBy('{{ $key }}')" @endif>
                 <span class="flex items-center justify-start">
-                  <span class="mr-2">{{ __($title["title"]) }}</span>
-                  <span class="w-4 h-4">
-                    @if ($this->sortField === $key)
-                      <x-icons.sort :direction="$this->sortDirection" />
-                    @else
-                      <x-icons.sort />
-                    @endif
-                  </span>
+                  <span class="mr-2">{{ __($table["title"]) }}</span>
+                  @if ($table["data"]["sortable"])
+                    <span class="w-4 h-4">
+                      @if ($sortField === $key)
+                        <x-icons.sort :direction="$sortDirection" />
+                      @else
+                        <x-icons.sort />
+                      @endif
+                    </span>
+                  @endif
                 </span>
               </th>
             @endforeach
           </tr>
         </thead>
         <tbody>
-          @if ($this->datas->isNotEmpty())
-            @foreach ($this->datas as $data)
+          @if ($datas->isNotEmpty())
+            @foreach ($datas as $data)
               <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                 <td class="px-6 py-4">{{ $data->title }}</td>
-                <td class="px-6 py-4">{{ Str::limit($data->content, 25) }}</td>
-                <td class="px-6 py-4">{{ $data->category_id }}</td>
+                <td class="px-6 py-4">{{ Str::limit($data->content, 50) }}</td>
+                <td class="px-6 py-4">{{ $data->category->name ?? "N/A" }}</td>
+                <!-- Mostrar el nombre de la categoría -->
                 <td class="px-6 py-4">{{ $data->user_id }}</td>
                 <td class="px-6 py-4">{{ $data->state }}</td>
                 <td class="px-6 py-4">{{ $data->created_at }}</td>
@@ -142,7 +194,7 @@ new class extends Component {
             @endforeach
           @else
             <tr>
-              <td colspan="{{ count($this->fields) }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="{{ count($titles) }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                 No hay datos disponibles.
               </td>
             </tr>
@@ -151,33 +203,52 @@ new class extends Component {
       </table>
     </div>
   @else
-    <div>
-      <form wire:submit.prevent="saveRecord">
-        {{-- @csrf --}}
-        @dd($this->forms, $this->titles)
-        @foreach ($this->titles as $key => $field)
-          <div>
-            <label for="{{ $key }}">{{ $field["title"] }}</label>
-            @if ($forms[$key]["type"] === "text")
-              <input type="text" wire:model="{{ $field["name"] }}" id="{{ $key }}">
-            @elseif ($field[1]["form"]["type"] === "textarea")
-              <textarea wire:model="{{ $field["name"] }}" id="{{ $key }}"></textarea>
-            @elseif ($field[1]["form"]["type"] === "select")
-              <select wire:model="{{ $field["name"] }}" id="{{ $key }}">
-                <option value="">Seleccione...</option>
-                {{-- Aquí puedes agregar las opciones del select --}}
-              </select>
-            @elseif ($field[1]["form"]["type"] === "date")
-              <input type="date" wire:model="{{ $field["name"] }}" id="{{ $key }}"
-                @if (isset($field[1]["form"]["enabled"]) && $field[1]["form"]["enabled"] === false) disabled @endif>
-            @endif
-          </div>
-        @endforeach
-        <button type="submit"
-          class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Guardar</button>
-        <button type="button" wire:click="cancelRecord"
-          class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</button>
-      </form>
-    </div>
+    <flux:heading>
+      <flux:subheading>
+        {{ $crudl == "create" ? __("new") : ($crudl == "update" ? __("update") : __("delete")) }} {{ __("record") }}
+      </flux:subheading>
+      <flux:separator variant="subtle" class="mb-4" />
+      <div>
+        <form wire:submit="saveRecord">
+          @foreach ($forms as $key => $form)
+            <div class="mb-4">
+              {{-- LABEL --}}
+              @if (!isset($form["data"]["hidden"]) || $form["data"]["hidden"] !== true)
+                <label for="{{ $key }}">{{ $form["title"] }}</label>
+              @endif
+
+              {{-- INPUT --}}
+              {{-- tipos de ingreso --}}
+              {{-- TEXTAREA --}}
+              @if ($form["data"]["type"] === "textarea")
+                <livewire:components.input :label="$form["title"]" :id="$key" :name="$key"
+                  :value="$formData[$key]" :class="$form["data"]["class"]" />
+                <textarea wire:model="formData.{{ $key }}" id="{{ $key }}"
+                  placeholder="{{ $form["data"]["placeholder"] ?? "" }}"></textarea>
+                {{-- SELECT --}}
+              @elseif ($form["data"]["type"] === "select")
+                <livewire:components.input :options="$categorias" :selected="$crudl === 'create' ? [] : $selectedCategories" />
+                {{-- DATE --}}
+              @elseif ($form["data"]["type"] === "date")
+                <input type="date" wire:model="formData.{{ $key }}" id="{{ $key }}"
+                  @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"] === true) disabled @endif title="{{ $form["data"]["placeholder"] ?? "" }}">
+                {{-- HIDDEN --}}
+              @elseif (isset($form["data"]["hidden"]) && $form["data"]["hidden"] === true)
+                <input type="hidden" wire:model="formData.{{ $key }}" id="{{ $key }}">
+                {{-- TEXT --}}
+              @else
+                <x-tw-input type="text" label="{{ $form["title"] }}" wire:model="formData.{{ $key }}"
+                  id="{{ $key }}" class="w-full" placeholder="{{ $form["data"]["placeholder"] ?? "" }}"
+                  @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"]) disabled @endif />
+              @endif
+            </div>
+          @endforeach
+          <button type="submit"
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Guardar</button>
+          <button type="button" wire:click="cancelRecord"
+            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</button>
+        </form>
+      </div>
+    </flux:heading>
   @endif
 </div>

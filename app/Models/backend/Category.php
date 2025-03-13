@@ -10,6 +10,8 @@ class Category extends Model
 {
     /** @use HasFactory<\Database\Factories\Backend\CategoryFactory> */
     use HasFactory;
+    protected $table = 'categories'; // Nombre de la tabla
+    protected $primaryKey = 'id'; //
 
     protected $fillable = ['name', 'slug', 'is_active']; // Ejemplo de campos permitidos
 
