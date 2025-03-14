@@ -4,36 +4,45 @@ use App\Models\Post\Post as Data;
 use App\Models\backend\Category;
 use Livewire\Volt\Component;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 new class extends Component {
     public $fields = [
-        "title" => [
-            "Title",
-            "table" => ["sortable" => true],
+        "id" => [
+            "Id",
+            "table" => ["sortable" => true, "visible" => true],
             "form" => [
                 "type" => "text",
-                "placeholder" => "Ingrese el título", // Placeholder personalizado
+                "disabled" => true,
+            ],
+        ],
+        "title" => [
+            "Title",
+            "table" => ["sortable" => true, "visible" => true],
+            "form" => [
+                "type" => "text",
+                "placeholder" => "Ingrese el título",
             ],
         ],
         "content" => [
             "Content",
-            "table" => ["sortable" => false], // Deshabilitar ordenamiento para este campo
+            "table" => ["sortable" => false, "visible" => true], // Deshabilitar ordenamiento para este campo
             "form" => [
                 "type" => "textarea",
-                "placeholder" => "Ingrese el contenido", // Placeholder personalizado
+                "placeholder" => "Ingrese el contenido",
             ],
         ],
         "category_id" => [
             "Category",
-            "table" => ["sortable" => true],
+            "table" => ["sortable" => true, "visible" => true],
             "form" => [
                 "type" => "select",
-                "placeholder" => "Seleccione una categoría", // Placeholder personalizado
+                "placeholder" => "Seleccione una categoría",
             ],
         ],
         "state" => [
             "Status",
-            "table" => ["sortable" => true],
+            "table" => ["sortable" => true, "visible" => true],
             "form" => [
                 "type" => "select",
                 "hidden" => true,
@@ -42,7 +51,7 @@ new class extends Component {
         ],
         "user_id" => [
             "User",
-            "table" => ["sortable" => true],
+            "table" => ["sortable" => true, "visible" => true],
             "form" => [
                 "type" => "text",
                 "hidden" => true,
@@ -51,7 +60,7 @@ new class extends Component {
         ],
         "created_at" => [
             "Created At",
-            "table" => ["sortable" => true],
+            "table" => ["sortable" => true, "visible" => true],
             "form" => [
                 "type" => "date",
                 "disabled" => true,
@@ -67,7 +76,6 @@ new class extends Component {
     public $datas = [];
     public $categorias = [];
     public $selectedCategories = []; // Opciones seleccionadas
-    // Escuchar el evento "selected-updated"
     protected $listeners = ["selected-updated" => "handleSelectedUpdated"];
     public $sortField = "title";
     public $sortDirection = "asc";
@@ -83,7 +91,6 @@ new class extends Component {
     {
         // Obtener las categorías desde la base de datos
         $this->categorias = Category::pluck("name", "id")->toArray();
-        // dd($this->categorias);
 
         $this->titles = array_column($this->fields, 0);
         $this->tables = array_map(
@@ -106,6 +113,7 @@ new class extends Component {
         foreach ($this->fields as $key => $field) {
             $this->formData[$key] = $field["form"]["default"] ?? null;
         }
+
         // Asignar el ID del usuario autenticado al campo `user_id`
         if (auth()->check()) {
             $this->formData["user_id"] = auth()->user()->id;
@@ -119,6 +127,13 @@ new class extends Component {
 
     public function sortBy($field)
     {
+        // Verificar si hay registros en la tabla
+        if ($this->datas->isEmpty()) {
+            session()->flash("warning", "No hay registros para ordenar.");
+            return;
+        }
+
+        // Lógica de ordenamiento
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === "asc" ? "desc" : "asc";
         } else {
@@ -156,6 +171,7 @@ new class extends Component {
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        {{-- TITULOS --}}
         <thead
           class="bg-neutral text-gray-700 dark:bg-neutral-800 dark:text-gray-300 -50 text-xs uppercase font-semibold tracking-wide">
           <tr>
@@ -179,17 +195,84 @@ new class extends Component {
             @endforeach
           </tr>
         </thead>
+        {{-- CUERPO --}}
         <tbody>
           @if ($datas->isNotEmpty())
             @foreach ($datas as $data)
               <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <td class="px-6 py-4">{{ $data->title }}</td>
-                <td class="px-6 py-4">{{ Str::limit($data->content, 50) }}</td>
-                <td class="px-6 py-4">{{ $data->category->name ?? "N/A" }}</td>
-                <!-- Mostrar el nombre de la categoría -->
-                <td class="px-6 py-4">{{ $data->user_id }}</td>
-                <td class="px-6 py-4">{{ $data->state }}</td>
-                <td class="px-6 py-4">{{ $data->created_at }}</td>
+                @foreach ($fields as $campoNombre => $campoInfo)
+                  @php
+                    // Obtén el valor del campo actual
+                    $valorCampo = $data->$campoNombre;
+                    // Obtén el tipo de campo desde el arreglo $fields
+                    $tipoCampo = $campoInfo["form"]["type"];
+                    // Verifica si el campo es visible en la tabla
+                    $visible = $campoInfo["table"]["visible"] ?? false;
+                  @endphp
+
+                  @if ($visible)
+                    <td class="border-none px-4 py-1 text-gray-900 dark:text-white">
+                      @switch($tipoCampo)
+                        @case("integer")
+                        @case("decimal")
+                          <div class="text-right">
+                            {{ number_format($valorCampo, $campoInfo["form"]["decimal"] ?? 2, ".", ",") }}
+                          </div>
+                        @break
+
+                        @case("date")
+                          <div class="text-center">
+                            {{ date("d/m/Y", strtotime($valorCampo)) }}
+                          </div>
+                        @break
+
+                        @case("checkit")
+                          <div class="text-center">
+                            <x-forms.tw_onoff :valor="$valorCampo" tipo="ticket-x" />
+                          </div>
+                        @break
+
+                        @case("tags")
+                          <div class="text-center">
+                            @if ($data->tags->isEmpty())
+                              No tags
+                            @else
+                              @foreach ($data->tags as $tag)
+                                <span>{{ $tag->name }}</span>
+                                @if (!$loop->last)
+                                  -
+                                @endif
+                              @endforeach
+                            @endif
+                          </div>
+                        @break
+
+                        @case("select")
+                          <div class="text-left">
+                            @php
+                              // Encuentra la categoría cuyo ID coincide con $valorCampo
+                              $category = $categorias->firstWhere("id", $valorCampo);
+                            @endphp
+                            {{ $category ? $category->name : "no encontrada" }}
+                          </div>
+                        @break
+
+                        @case("image")
+                          <div class="h-10 w-10 text-center">
+                            @if (!is_null($valorCampo) && Storage::disk("public")->exists($valorCampo))
+                              <img alt="Foto" src="{{ asset("storage/" . $valorCampo) }}">
+                            @endif
+                          </div>
+                        @break
+
+                        @default
+                          <div class="text-left">
+                            {{ $valorCampo }}
+                          </div>
+                      @endswitch
+                    </td>
+                  @endif
+                @endforeach
               </tr>
             @endforeach
           @else
@@ -212,32 +295,23 @@ new class extends Component {
         <form wire:submit="saveRecord">
           @foreach ($forms as $key => $form)
             <div class="mb-4">
-              {{-- LABEL --}}
-              @if (!isset($form["data"]["hidden"]) || $form["data"]["hidden"] !== true)
-                <label for="{{ $key }}">{{ $form["title"] }}</label>
-              @endif
-
-              {{-- INPUT --}}
-              {{-- tipos de ingreso --}}
+              {{-- INPUTS --}}
               {{-- TEXTAREA --}}
               @if ($form["data"]["type"] === "textarea")
-                <livewire:components.input :label="$form["title"]" :id="$key" :name="$key"
-                  :value="$formData[$key]" :class="$form["data"]["class"]" />
-                <textarea wire:model="formData.{{ $key }}" id="{{ $key }}"
-                  placeholder="{{ $form["data"]["placeholder"] ?? "" }}"></textarea>
+                <flux:textarea label="{{ $form["title"] }}" id="{{ $key }}" name="{{ $key }}"
+                  wire:model="formData.{{ $key }}" class="w-full" />
                 {{-- SELECT --}}
               @elseif ($form["data"]["type"] === "select")
-                <livewire:components.input :options="$categorias" :selected="$crudl === 'create' ? [] : $selectedCategories" />
+                <x-forms.input-select id="{{ $key }}" wire:model="formData.{{ $key }}"
+                  label="{{ $form["title"] }}" :options="$categorias" :selected="$selectedCategories" labelWidth="w-1/4"
+                  inputWidth="w-3/4" />
                 {{-- DATE --}}
               @elseif ($form["data"]["type"] === "date")
-                <input type="date" wire:model="formData.{{ $key }}" id="{{ $key }}"
-                  @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"] === true) disabled @endif title="{{ $form["data"]["placeholder"] ?? "" }}">
-                {{-- HIDDEN --}}
-              @elseif (isset($form["data"]["hidden"]) && $form["data"]["hidden"] === true)
-                <input type="hidden" wire:model="formData.{{ $key }}" id="{{ $key }}">
+                <flux:input type="date" wire:model="formData.{{ $key }}" id="{{ $key }}"
+                  @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"] === true) disabled @endif />
                 {{-- TEXT --}}
-              @else
-                <x-tw-input type="text" label="{{ $form["title"] }}" wire:model="formData.{{ $key }}"
+              @elseif ($form["data"]["type"] === "text")
+                <flux:input type="text" label="{{ $form["title"] }}" wire:model="formData.{{ $key }}"
                   id="{{ $key }}" class="w-full" placeholder="{{ $form["data"]["placeholder"] ?? "" }}"
                   @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"]) disabled @endif />
               @endif
