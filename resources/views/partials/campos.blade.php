@@ -6,7 +6,7 @@
     // Obtén el tipo de campo desde el arreglo $fields
     $tipoCampo = $campoInfo["form"]["type"];
     // Verifica si el campo es visible en la tabla
-    $visible = $campoInfo["table"]["sortable"] ?? false;
+    $visible = $campoInfo["table"]["visible"] ?? false;
   @endphp
 
   @if ($visible)
@@ -25,9 +25,15 @@
           </div>
         @break
 
+        @case("boolean")
+          <div class="text-center">
+            <x-forms.on-off :valor="$valorCampo" formato="yes/no" colorOn="green" colorOff="red" />
+          </div>
+        @break
+
         @case("checkit")
           <div class="text-center">
-            <x-forms.tw_onoff :valor="$valorCampo" tipo="ticket-x" />
+            <x-forms.on-off :valor="$valorCampo" tipo="ticket-x" />
           </div>
         @break
 
@@ -50,7 +56,7 @@
           <div class="text-left">
             @php
               // Encuentra la categoría cuyo ID coincide con $valorCampo
-              $category = $categorias->firstWhere("id", $valorCampo);
+              $category = $model->find("id", $valorCampo);
             @endphp
             {{ $category ? $category->name : "no encontrada" }}
           </div>
