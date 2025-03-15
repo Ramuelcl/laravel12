@@ -1,7 +1,7 @@
 <?php // resources/views/livewire/posts/posts.blade.php
 
 use App\Models\Post\Post as Data;
-use App\Models\backend\Category;
+use App\Models\backend\Category as Data1;
 use Livewire\Volt\Component;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -9,70 +9,40 @@ use Illuminate\Support\Facades\Storage;
 new class extends Component {
     public $fields = [
         "id" => [
-            "Id",
-            "table" => ["sortable" => true, "visible" => true],
-            "form" => [
-                "type" => "text",
-                "disabled" => true,
-            ],
+            "table" => ["title" => "Id", "sortable" => true, "visible" => true, "type" => "text"],
+            "form" => ["title" => "Id", "type" => "text", "disabled" => true],
         ],
         "title" => [
-            "Title",
-            "table" => ["sortable" => true, "visible" => true],
-            "form" => [
-                "type" => "text",
-                "placeholder" => "Ingrese el título",
-            ],
+            "table" => ["title" => "Title", "sortable" => true, "visible" => true, "type" => "text"],
+            "form" => ["title" => "Title", "type" => "text", "placeholder" => "Ingrese el título"],
         ],
         "content" => [
-            "Content",
-            "table" => ["sortable" => false, "visible" => true], // Deshabilitar ordenamiento para este campo
-            "form" => [
-                "type" => "textarea",
-                "placeholder" => "Ingrese el contenido",
-            ],
+            "table" => ["title" => "Content", "sortable" => false, "visible" => true, "type" => "text"],
+            "form" => ["title" => "Content", "type" => "textarea", "placeholder" => "Ingrese el contenido"],
         ],
         "category_id" => [
-            "Category",
-            "table" => ["sortable" => true, "visible" => true],
-            "form" => [
-                "type" => "select",
-                "placeholder" => "Seleccione una categoría",
-            ],
+            "table" => ["title" => "Category", "sortable" => true, "visible" => true, "type" => "select"],
+            "form" => ["title" => "Category", "type" => "select", "placeholder" => "Seleccione una categoría"],
         ],
         "state" => [
-            "Status",
-            "table" => ["sortable" => true, "visible" => true],
-            "form" => [
-                "type" => "select",
-                "hidden" => true,
-                "placeholder" => "", // Placeholder vacío
-            ],
+            "table" => ["title" => "Status", "sortable" => true, "visible" => true, "type" => "boolean"],
+            "form" => ["title" => "Status", "type" => "select", "hidden" => true, "placeholder" => ""],
         ],
         "user_id" => [
-            "User",
-            "table" => ["sortable" => true, "visible" => true],
-            "form" => [
-                "type" => "text",
-                "hidden" => true,
-                "placeholder" => "", // Placeholder vacío
-            ],
+            "table" => ["title" => "User", "sortable" => true, "visible" => true, "type" => "text"],
+            "form" => ["title" => "User", "type" => "text", "hidden" => true, "placeholder" => ""],
         ],
         "created_at" => [
-            "Created At",
-            "table" => ["sortable" => true, "visible" => true],
-            "form" => [
-                "type" => "date",
-                "disabled" => true,
-                "placeholder" => "", // Placeholder vacío
-            ],
+            "table" => ["title" => "Created At", "sortable" => true, "visible" => true, "type" => "date"],
+            "form" => ["title" => "Created At", "type" => "date", "disabled" => true, "placeholder" => ""],
         ],
     ];
 
     public $crudl = "list"; // create, read, update, delete, list
     public $model = Data::class;
+    public $model1 = Data1::class;
 
-    public $titles, $tables, $forms;
+    public $tables, $forms;
     public $datas = [];
     public $categorias = [];
     public $selectedCategories = []; // Opciones seleccionadas
@@ -90,22 +60,21 @@ new class extends Component {
     public function mount()
     {
         // Obtener las categorías desde la base de datos
-        $this->categorias = Category::pluck("name", "id")->toArray();
+        $this->categorias = $this->model1::pluck("name", "id")->toArray();
 
-        $this->titles = array_column($this->fields, 0);
-        $this->tables = array_map(
-            function ($key, $field) {
-                return ["title" => $field[0], "data" => $field["table"]];
-            },
+        // Extraer los subarreglos "table" y "form"
+        $this->tables = array_combine(
             array_keys($this->fields),
-            $this->fields,
+            array_map(function ($field) {
+                return $field["table"];
+            }, $this->fields),
         );
-        $this->forms = array_map(
-            function ($key, $field) {
-                return ["title" => $field[0], "data" => $field["form"]];
-            },
+
+        $this->forms = array_combine(
             array_keys($this->fields),
-            $this->fields,
+            array_map(function ($field) {
+                return $field["form"];
+            }, $this->fields),
         );
 
         $this->getData();
@@ -177,11 +146,11 @@ new class extends Component {
           <tr>
             @foreach ($tables as $key => $table)
               <th
-                class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold {{ $table["data"]["sortable"] ? "cursor-pointer" : "" }}"
-                @if ($table["data"]["sortable"]) wire:click="sortBy('{{ $key }}')" @endif>
+                class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold {{ $table["sortable"] ? "cursor-pointer" : "" }}"
+                @if ($table["sortable"]) wire:click="sortBy('{{ $key }}')" @endif>
                 <span class="flex items-center justify-start">
                   <span class="mr-2">{{ __($table["title"]) }}</span>
-                  @if ($table["data"]["sortable"])
+                  @if ($table["sortable"])
                     <span class="w-4 h-4">
                       @if ($sortField === $key)
                         <x-icons.sort :direction="$sortDirection" />
@@ -200,16 +169,16 @@ new class extends Component {
           @if ($datas->isNotEmpty())
             @foreach ($datas as $data)
               <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                @include("partials.campos", [
-                    "fields" => $fields,
+                @include("partials.camposTable", [
+                    "table" => $tables,
                     "data" => $data,
-                    "categorias" => $categorias,
+                    "data1" => $this->model1, // Agregar el modelo de la categoría
                 ])
               </tr>
             @endforeach
           @else
             <tr>
-              <td colspan="{{ count($titles) }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="{{ count($tables) }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                 No hay datos disponibles.
               </td>
             </tr>
@@ -229,23 +198,23 @@ new class extends Component {
             <div class="mb-4">
               {{-- INPUTS --}}
               {{-- TEXTAREA --}}
-              @if ($form["data"]["type"] === "textarea")
+              @if ($form["type"] === "textarea")
                 <flux:textarea label="{{ $form["title"] }}" id="{{ $key }}" name="{{ $key }}"
                   wire:model="formData.{{ $key }}" class="w-full" />
                 {{-- SELECT --}}
-              @elseif ($form["data"]["type"] === "select")
+              @elseif ($form["type"] === "select")
                 <x-forms.input-select id="{{ $key }}" wire:model="formData.{{ $key }}"
                   label="{{ $form["title"] }}" :options="$categorias" :selected="$selectedCategories" labelWidth="w-1/4"
                   inputWidth="w-3/4" />
                 {{-- DATE --}}
-              @elseif ($form["data"]["type"] === "date")
+              @elseif ($form["type"] === "date")
                 <flux:input type="date" wire:model="formData.{{ $key }}" id="{{ $key }}"
-                  @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"] === true) disabled @endif />
+                  @if (isset($form["disabled"]) && $form["disabled"] === true) disabled @endif />
                 {{-- TEXT --}}
-              @elseif ($form["data"]["type"] === "text")
+              @elseif ($form["type"] === "text")
                 <flux:input type="text" label="{{ $form["title"] }}" wire:model="formData.{{ $key }}"
-                  id="{{ $key }}" class="w-full" placeholder="{{ $form["data"]["placeholder"] ?? "" }}"
-                  @if (isset($form["data"]["disabled"]) && $form["data"]["disabled"]) disabled @endif />
+                  id="{{ $key }}" class="w-full" placeholder="{{ $form["placeholder"] ?? "" }}"
+                  @if (isset($form["disabled"]) && $form["disabled"]) disabled @endif />
               @endif
             </div>
           @endforeach

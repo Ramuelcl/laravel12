@@ -1,12 +1,12 @@
-{{-- resources/views/partials/campos.blade.php --}}
-@foreach ($fields as $campoNombre => $campoInfo)
+{{-- resources/views/partials/camposTable.blade.php --}}
+@foreach ($table as $campoNombre => $campoInfo)
   @php
     // Obtén el valor del campo actual
     $valorCampo = $data->$campoNombre;
-    // Obtén el tipo de campo desde el arreglo $fields
-    $tipoCampo = $campoInfo["form"]["type"];
+    // Obtén el tipo de campo desde el arreglo $table
+    $tipoCampo = $campoInfo["type"] ?? null;
     // Verifica si el campo es visible en la tabla
-    $visible = $campoInfo["table"]["visible"] ?? false;
+    $visible = $campoInfo["visible"] ?? false;
   @endphp
 
   @if ($visible)
@@ -15,7 +15,7 @@
         @case("integer")
         @case("decimal")
           <div class="text-right">
-            {{ number_format($valorCampo, $campoInfo["form"]["decimal"] ?? 2, ".", ",") }}
+            {{ number_format($valorCampo, $campoInfo["decimal"] ?? 2, ".", ",") }}
           </div>
         @break
 
@@ -27,13 +27,13 @@
 
         @case("boolean")
           <div class="text-center">
-            <x-forms.on-off :valor="$valorCampo" formato="yes/no" colorOn="green" colorOff="red" />
+            <x-forms.on-off :valor="$valorCampo" formato="yes/no" />
           </div>
         @break
 
         @case("checkit")
           <div class="text-center">
-            <x-forms.on-off :valor="$valorCampo" tipo="ticket-x" />
+            <x-forms.on-off :valor="$valorCampo" />
           </div>
         @break
 
@@ -55,10 +55,10 @@
         @case("select")
           <div class="text-left">
             @php
-              // Encuentra la categoría cuyo ID coincide con $valorCampo
-              $category = $model->find("id", $valorCampo);
+              // Encuentra el registro cuyo ID coincide con $valorCampo utilizando el modelo genérico
+              $relatedData = $data1::find($valorCampo);
             @endphp
-            {{ $category ? $category->name : "no encontrada" }}
+            {{ $relatedData ? $relatedData->name : "no encontrada" }}
           </div>
         @break
 

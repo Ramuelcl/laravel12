@@ -29,6 +29,12 @@ new class extends Component {
         }
     }
 
+    public function mount($valor, $formato = "on/off")
+    {
+        $this->valor = $valor;
+        $this->formato = $formato;
+    }
+
     // Método para obtener el color según el estado
     public function getColor($valor)
     {
