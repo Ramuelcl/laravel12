@@ -1,4 +1,4 @@
-{{-- resources\views\components\tw_icons.blade.php --}}
+{{-- resources\views\components\icons.blade.php --}}
 @props(["name", "defaultClass" => "w-5 h-5", "typeIcon" => "outline", 'error'=>true])
 
 @php
