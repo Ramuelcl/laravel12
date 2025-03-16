@@ -91,7 +91,11 @@ new class extends Component {
 
     public function getData()
     {
-        $this->datas = $this->model::orderBy($this->sortField, $this->sortDirection)->get();
+        // Cargar las relaciones 'category' y 'user' junto con los posts
+        $this->datas = $this->model
+            ::with(["category", "user"])
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->get();
     }
 
     public function sortBy($field)
@@ -132,7 +136,10 @@ new class extends Component {
 ?>
 
 <div>
-  @if ($crudl === "list")
+  <div class="relative mb-6 w-full">
+    <flux:heading size="xl" level="1">{{ __("Posts") }}</flux:heading>
+    <flux:subheading size="lg" class="mb-6">{{ __("Crud") }}</flux:subheading>
+    <flux:separator variant="subtle" />
     <div class="pb-2">
       <button wire:click="addRecord()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
         Agregar Registro
@@ -144,24 +151,41 @@ new class extends Component {
         <thead
           class="bg-neutral text-gray-700 dark:bg-neutral-800 dark:text-gray-300 -50 text-xs uppercase font-semibold tracking-wide">
           <tr>
-            @foreach ($tables as $key => $table)
-              <th
-                class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold {{ $table["sortable"] ? "cursor-pointer" : "" }}"
-                @if ($table["sortable"]) wire:click="sortBy('{{ $key }}')" @endif>
-                <span class="flex items-center justify-start">
-                  <span class="mr-2">{{ __($table["title"]) }}</span>
-                  @if ($table["sortable"])
-                    <span class="w-4 h-4">
-                      @if ($sortField === $key)
-                        <x-icons.sort :direction="$sortDirection" />
-                      @else
-                        <x-icons.sort />
-                      @endif
-                    </span>
-                  @endif
-                </span>
-              </th>
-            @endforeach
+            <th scope="col"
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("Id") }}
+            </th>
+            <th scope="col"
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("Title") }}
+            </th>
+            <th scope="col"
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("Content") }}
+            </th>
+            <th scope="col"
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("Category") }}
+            </th>
+            <th scope="col"
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("Status") }}
+            </th>
+            <td
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("User") }}
+            </td>
+            <td
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs uppercase font-semibold tracking-wide">
+              {{ __("Active") }}
+            </td>
+            <td
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-center text-xs uppercase font-semibold tracking-wide">
+              {{ __("created") }}</td>
+            <td
+              class="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-center text-xs uppercase font-semibold tracking-wide">
+              {{ __("Actions") }}
+            </td>
           </tr>
         </thead>
         {{-- CUERPO --}}
@@ -169,11 +193,42 @@ new class extends Component {
           @if ($datas->isNotEmpty())
             @foreach ($datas as $data)
               <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                @include("partials.camposTable", [
-                    "table" => $tables,
-                    "data" => $data,
-                    "data1" => $this->model1, // Agregar el modelo de la categoría
-                ])
+                <td class="border-none px-4 py-1 text-gray-900 dark:text-white">
+                  {{ $data->id }}
+                </td>
+                <td class="border-none px-4 py-1 text-gray-900 dark:text-white">
+                  {{ $data->title }}
+                </td>
+                <td class="border-none px-4 py-1 text-gray-900 dark:text-white">
+                  {{ substr($data->content, 0, 10) . "..." }}
+                </td>
+                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                  {{ $data->category->name ?? __("no exist") }}
+                </td>
+                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                  {{ $data->state }}
+                </td>
+                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                  {{ $data->User->name }}
+                </td>
+                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                  {{ $data->is_active ? "yes" : "no" }}
+                </td>
+                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                  {{ date("d/m/Y", strtotime($data->created_at)) }}
+                </td>
+                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                  <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    {{ __("Edit") }}
+                  </button>
+                  <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    {{ __("Read") }}
+                  </button>
+                  </button>
+                  <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    {{ __("Delete") }}
+                  </button>
+                </td>
               </tr>
             @endforeach
           @else
@@ -186,44 +241,5 @@ new class extends Component {
         </tbody>
       </table>
     </div>
-  @else
-    <flux:heading>
-      <flux:subheading>
-        {{ $crudl == "create" ? __("new") : ($crudl == "update" ? __("update") : __("delete")) }} {{ __("record") }}
-      </flux:subheading>
-      <flux:separator variant="subtle" class="mb-4" />
-      <div>
-        <form wire:submit="saveRecord">
-          @foreach ($forms as $key => $form)
-            <div class="mb-4">
-              {{-- INPUTS --}}
-              {{-- TEXTAREA --}}
-              @if ($form["type"] === "textarea")
-                <flux:textarea label="{{ $form["title"] }}" id="{{ $key }}" name="{{ $key }}"
-                  wire:model="formData.{{ $key }}" class="w-full" />
-                {{-- SELECT --}}
-              @elseif ($form["type"] === "select")
-                <x-forms.input-select id="{{ $key }}" wire:model="formData.{{ $key }}"
-                  label="{{ $form["title"] }}" :options="$categorias" :selected="$selectedCategories" labelWidth="w-1/4"
-                  inputWidth="w-3/4" />
-                {{-- DATE --}}
-              @elseif ($form["type"] === "date")
-                <flux:input type="date" wire:model="formData.{{ $key }}" id="{{ $key }}"
-                  @if (isset($form["disabled"]) && $form["disabled"] === true) disabled @endif />
-                {{-- TEXT --}}
-              @elseif ($form["type"] === "text")
-                <flux:input type="text" label="{{ $form["title"] }}" wire:model="formData.{{ $key }}"
-                  id="{{ $key }}" class="w-full" placeholder="{{ $form["placeholder"] ?? "" }}"
-                  @if (isset($form["disabled"]) && $form["disabled"]) disabled @endif />
-              @endif
-            </div>
-          @endforeach
-          <button type="submit"
-            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Guardar</button>
-          <button type="button" wire:click="cancelRecord"
-            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</button>
-        </form>
-      </div>
-    </flux:heading>
-  @endif
+  </div>
 </div>
