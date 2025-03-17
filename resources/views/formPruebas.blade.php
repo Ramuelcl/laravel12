@@ -1,53 +1,48 @@
 <x-layouts.app title="Formulario">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     <div class="relative h-full p-4 flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-      @if (session("success"))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-          <strong class="font-bold">¡Éxito!</strong>
-          <span class="block sm:inline">{{ session("success") }}</span>
-          <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
-            <svg onclick="this.parentElement.parentElement.style.display = 'none';"
-              class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20">
-              <title>Close</title>
-              <path fill-rule="evenodd"
-                d="M14.95 5.05a.75.75 0 0 1 1.06 1.06L11.06 10l4.95 4.95a.75.75 0 1 1-1.06 1.06L10 11.06l-4.95 4.95a.75.75 0 0 1-1.06-1.06L8.94 10 4.99 5.05a.75.75 0 0 1 1.06-1.06L10 8.94l4.95-4.95z">
-              </path>
-            </svg>
-          </span>
-        </div>
-      @endif
+      <!-- Mostrar todos los mensajes de sesión -->
+      <x-forms.flash-message :messages="session("messages", [])" />
+      <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-200">Formulario de Pruebas</h1>
 
-      <form method="POST" action="{{ route("formulario.store") }}">
+      <form method="POST" action="{{ route("formulario.store") }}" enctype="multipart/form-data">
         @csrf
+
+        {{-- name --}}
         <div class="mb-4">
-          <x-forms.label for="name" position="top" required>
-            Nombre
-          </x-forms.label>
-          <x-forms.input-text id="name" name="name" placeholder="Nombre" />
+          <x-forms.input-text id="name" name="name" placeholder="Ingresa tu nombre" label="name"
+            :labelRequired="true" labelWidth="w-64" labelPosition="left" />
         </div>
-        <div class="mb-6">
-          <x-forms.input-password
-    id="password"
-    name="password"
-    placeholder="Ingresa tu contraseña"
-    required
-    label="Contraseña"
-    labelPosition="top"
-    :labelRequired="true"
-/>
+
+        {{-- email --}}
+        <div class="mb-4">
+          <x-forms.input-text id="email" name="email" type="email" placeholder="Ingresa tu correo electrónico"
+            class="form-control w-64" required label="Correo Electrónico" labelPosition="left" labelWidth="w-64"
+            :labelRequired="true" wireModel="email" />
         </div>
-        <div class="mb-6">
+
+        {{-- password --}}
+        <div class="mb-4">
+          <x-forms.input-text id="password" name="password" placeholder="Ingresa tu password" required type="password"
+            label="Contraseña" labelPosition="left" labelWidth="w-64" :labelRequired="true" wireModel="password" />
+        </div>
+
+        {{-- phone --}}
+        <div class="mb-4">
+          <x-forms.input-text id="phone" name="phone" type="tel" placeholder="Ingresa tu teléfono"
+            labelPosition="left" label="Teléfono" class="form-control" labelWidth="w-64" wireModel="phone" />
+        </div>
+
+        <div class="mb-4">
+          <x-forms.input-select id="select" name="select" label="Sexo"  labelWidth="w-64" selected="1"
+            :select="['1' => 'Masculino', '2' => 'Femenino', '3' => 'No sabe']" />
+        </div>
+
+        <div class="mb-4">
           ss
         </div>
-        <div class="mb-4">
-          <x-forms.label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-            Sexo
-          </x-forms.label>
-          <input
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="name" name="name" type="text" placeholder="Nombre" required>
-        </div>
+
+        {{-- submit --}}
         <div class="flex items-center justify-between">
           <button
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

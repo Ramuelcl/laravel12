@@ -1,95 +1,55 @@
-<?php // resources/views/components/forms/flash-message.blade.php
+{{-- resources/views/components/flash-message.blade.php --}}
+@props([
+    'messages' => [], // Array de mensajes de sesión
+])
 
-use Livewire\Volt\Component;
+@php
+    // Definir estilos y íconos según el tipo de mensaje
+    $styles = [
+        'success' => [
+            'bgColor' => 'bg-green-100',
+            'borderColor' => 'border-green-400',
+            'textColor' => 'text-green-700',
+            'iconColor' => 'text-green-500',
+            'iconPath' => 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z',
+        ],
+        'error' => [
+            'bgColor' => 'bg-red-100',
+            'borderColor' => 'border-red-400',
+            'textColor' => 'text-red-700',
+            'iconColor' => 'text-red-500',
+            'iconPath' => 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z',
+        ],
+        'warning' => [
+            'bgColor' => 'bg-yellow-100',
+            'borderColor' => 'border-yellow-400',
+            'textColor' => 'text-yellow-700',
+            'iconColor' => 'text-yellow-500',
+            'iconPath' => 'M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z',
+        ],
+        'info' => [
+            'bgColor' => 'bg-blue-100',
+            'borderColor' => 'border-blue-400',
+            'textColor' => 'text-blue-700',
+            'iconColor' => 'text-blue-500',
+            'iconPath' => 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z',
+        ],
+    ];
+@endphp
 
-new class extends Component {
-    // Propiedades públicas
-    public $message = "";
-    public $type = "info"; // Tipo de mensaje: info, success, warning, error
-    public $duration = 30; // Duración en segundos (por defecto 30 segundos)
-    public $position = "top-left"; // Posición del mensaje
-    public $show = false; // Controla si el mensaje se muestra o no
-
-    // Método para mostrar el mensaje
-    public function showMessage($message, $type = "info", $duration = 30, $position = "bottom-right")
-    {
-        $this->message = $message;
-        $this->type = $type;
-        $this->duration = $duration;
-        $this->position = $position;
-        $this->show = true;
-
-        // Cerrar el mensaje automáticamente después de la duración especificada
-        $this->dispatch("start-timer", duration: $this->duration * 1000);
-    }
-
-    // Método para cerrar el mensaje manualmente
-    public function closeMessage()
-    {
-        $this->show = false;
-    }
-};
-?>
-
-<div>
-  <!-- Mensaje -->
-  @if ($show)
-    <div x-data="{
-        progress: 100,
-        startTimer(duration) {
-            const interval = 50; // Intervalo de actualización en milisegundos
-            const decrement = (interval / duration) * 100;
-            const timer = setInterval(() => {
-                this.progress -= decrement;
-                if (this.progress <= 0) {
-                    clearInterval(timer);
-                    @this.closeMessage();
-                }
-            }, interval);
-        }
-    }" x-init="startTimer({{ $duration * 1000 }})" @class([
-        "fixed z-50 p-4 rounded-lg shadow-lg text-white flex flex-col space-y-2 transition-transform transform",
-        "bg-blue-500" => $type === "info",
-        "bg-green-500" => $type === "success",
-        "bg-yellow-500" => $type === "warning",
-        "bg-red-500" => $type === "error",
-        "top-4 left-4" => $position === "top-left",
-        "top-4 right-4" => $position === "top-right",
-        "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" =>
-            $position === "top-center",
-        "bottom-4 left-4" => $position === "bottom-left",
-        "bottom-4 right-4" => $position === "bottom-right",
-        "bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2" =>
-            $position === "bottom-center",
-    ])>
-      <!-- Contenido del mensaje -->
-      <div class="flex justify-between items-center">
-        <span>{{ $message }}</span>
-        <button @click="closeMessage" class="ml-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clip-rule="evenodd" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Barra de progreso -->
-      <div class="h-1 bg-white/50 rounded-full overflow-hidden">
-        <div class="h-full bg-white transition-all" :style="`width: ${progress}%`"></div>
-      </div>
-    </div>
-  @endif
-</div>
-{{-- 
-  // En un componente Livewire
-$this->dispatch('show-message', message: 'Registro guardado correctamente.', type: 'success', duration: 10, position: 'top-right');
-
-// En un controlador
-session()->flash('flash-message', [
-    'message' => 'Registro guardado correctamente.',
-    'type' => 'success',
-    'duration' => 10,
-    'position' => 'top-right',
-]);
- --}}
+@foreach ($messages as $type => $message)
+    @if ($message)
+        <div class="{{ $styles[$type]['bgColor'] }} border {{ $styles[$type]['borderColor'] }} {{ $styles[$type]['textColor'] }} px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">{{ ucfirst($type) }}!</strong>
+            <span class="block sm:inline">{{ $message }}</span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <svg onclick="this.parentElement.parentElement.style.display = 'none';"
+                    class="fill-current h-6 w-6 {{ $styles[$type]['iconColor'] }}" role="button" xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20">
+                    <title>Close</title>
+                    <path fill-rule="evenodd" d="{{ $styles[$type]['iconPath'] }}" />
+                </svg>
+            </span>
+        </div>
+    @endif
+@endforeach

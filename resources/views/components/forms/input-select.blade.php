@@ -1,51 +1,58 @@
 {{-- resources/views/components/forms/input-select.blade.php --}}
 @props([
-    "disabled" => false,
-    "label" => null,
     "id" => "",
     "name" => "",
-    "value" => null,
-    "class" => "",
-    "options" => [], // Opciones para el select
-    "labelPosition" => "left", // Posición del label: left, up, right, down
-    "labelWidth" => "w-1/3", // Ancho máximo del label (predeterminado)
-    "inputWidth" => "w-full", // Ancho máximo del input (predeterminado)
+    "placeholder" => "Select...",
+    "multiple" => false, // Permitir múltiples selecciones
+    "required" => false,
+    "class" => "w-full", // Ancho del select (por defecto: w-full)
+    // Label
+    "label" => null, // Slot para el label
+    "labelPosition" => "top", // Posición del label: 'top' o 'left'
+    "labelRequired" => false, // Si el label debe mostrar un asterisco
+    "labelWidth" => "w-64", // Ancho del label (por defecto: w-64)
+    // Opciones
+    "select" => [], // Arreglo de opciones (clave => valor)
+    "selected" => null, // Valor seleccionado (puede ser un arreglo si multiple=true)
+    // Livewire
+    "wireModel" => null, // Para soporte de Livewire (wire:model)
 ])
 
-@php
-  $classFix =
-      "font-normal text-blue-500 dark:text-blue-100 block rounded-md form-input border-blue-400 focus:border-blue-600 mb-3";
-  $position = "grid grid-cols-12 gap-4 items-center";
-  $l = "sm:col-span-3 text-left " . $labelWidth;
+<div class="{{ $label ? 'flex items-start' : '' }} {{ $label && $labelPosition === 'left' ? 'flex-row space-x-4' : 'flex-col' }}">
+    @if ($label)
+        <x-forms.label 
+            for="{{ $id }}" 
+            position="{{ $labelPosition }}" 
+            :required="$labelRequired"
+            class="{{ $labelPosition === 'left' ? $labelWidth : 'w-full' }} flex items-center gap-1"
+        >
+            {{ $label }}
+        </x-forms.label>
+    @endif
 
-  if ($labelPosition === "up") {
-      $position = "flex flex-col space-y-1";
-      $l = "block mb-1 w-full";
-  } elseif ($labelPosition === "down") {
-      $position = "flex flex-col-reverse space-y-1";
-      $l = "block mt-1 w-full";
-  } elseif ($labelPosition === "right") {
-      $l = "sm:col-span-3 text-right " . $labelWidth;
-  }
-@endphp
+    <div class="relative w-full">
+        <select
+            {{ $attributes->merge([
+                'class' => "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {$class}",
+                'id' => $id,
+                'name' => $name,
+                'multiple' => $multiple, // Habilitar múltiples selecciones
+                'required' => $required,
+                'wire:model' => $wireModel, // Soporte para Livewire
+            ]) }}
+        >
+            @if ($placeholder)
+                <option value="" disabled {{ !$selected ? 'selected' : '' }}>
+                    {{ $placeholder }}
+                </option>
+            @endif
 
-{{-- Contenedor flexible para el label y el select --}}
-<div class="{{ $position }} w-full">
-  {{-- Etiqueta --}}
-  @if ($label)
-    <label for="{{ $id ?? $name }}"
-      class="text-sm text-gray-700 dark:text-gray-200 {{ $l }} whitespace-nowrap">
-      {{ $label }}
-    </label>
-  @endif
-
-  {{-- Select --}}
-  <div class="@if ($labelPosition !== "up") sm:col-span-9 w-full @endif">
-    <select id="{{ $id ?? $name }}" name="{{ $name }}" {{ $disabled ? "disabled" : "" }} {!! $attributes->merge(["class" => "$classFix $class w-full"]) !!}>
-      <option value="" disabled>Seleccione</option>
-      @foreach ($options as $key => $option)
-        <option value="{{ $key }}" {{ $value == $key ? "selected" : "" }}>{{ $option }}</option>
-      @endforeach
-    </select>
-  </div>
+            @foreach ($select as $key => $value)
+                <option value="{{ $key }}" {{ ($multiple ? in_array($key, (array) $selected) : $selected == $key) ? 'selected' : '' }}>
+                    {{ $value }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    <x-forms.input-error :name="$name" />
 </div>
