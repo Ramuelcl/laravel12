@@ -41,7 +41,7 @@
                 'wire:model' => $wireModel, // Soporte para Livewire
             ]) }}
         >
-            @if ($placeholder)
+            @if ($placeholder && $multiple==false)
                 <option value="" disabled {{ !$selected ? 'selected' : '' }}>
                     {{ $placeholder }}
                 </option>

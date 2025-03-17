@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use function Laravel\Prompts\pause;
+
 use Illuminate\Http\Request;
 
 class FormController extends Controller
@@ -14,9 +16,23 @@ class FormController extends Controller
     // Reglas de validación para todos los campos
     protected $rules = [
         'name' => 'required|string|min:3|max:55',
-        'phone' => 'required|numeric',
         'email' => 'required|email|max:55|unique:users',
-        'message' => 'required',
+        'password' => 'required',
+        'phone' => 'required|numeric',
+        'select' => 'required|integer|min:1',
+        'select' => 'required|array|min:1',
+        'checkbox' => 'required',
+        'textarea' => 'required',
+        'radio' => 'required',
+        'date' => 'required',
+        'time' => 'required',
+        'datetime' => 'required',
+        'color' => 'required',
+        'file' => 'required',
+        'range' => 'required',
+        'number' => 'required',
+        'url' => 'required',
+        'search' => 'required',
     ];
 
     // Mensajes de error personalizados
@@ -42,6 +58,7 @@ class FormController extends Controller
 
     public function store(Request $request)
     {
+        dump($request->);
         // Validar los datos del formulario usando las propiedades definidas
         $validated = $request->validate($this->rules, $this->messages, $this->validationAttributes);
 

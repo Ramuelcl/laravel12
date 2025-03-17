@@ -8,42 +8,75 @@
       <form method="POST" action="{{ route("formulario.store") }}" enctype="multipart/form-data">
         @csrf
 
-        {{-- name --}}
-        <div class="mb-4">
-          <x-forms.input-text id="name" name="name" placeholder="Ingresa tu nombre" label="name"
-            :labelRequired="true" labelWidth="w-64" labelPosition="left" />
+        {{-- Contenedor de dos columnas --}}
+        <div class="flex gap-4">
+          {{-- Columna 1 --}}
+          <div class="flex-1">
+            {{-- name --}}
+            <div class="mb-4">
+              <x-forms.input-text id="name" name="name" placeholder="Ingresa tu nombre" label="name"
+                :labelRequired="true" labelWidth="w-64" labelPosition="left" />
+            </div>
+
+            {{-- email --}}
+            <div class="mb-4">
+              <x-forms.input-text id="email" name="email" type="email"
+                placeholder="Ingresa tu correo electrónico" class="form-control w-64" required
+                label="Correo Electrónico" labelPosition="left" labelWidth="w-64" :labelRequired="true" wireModel="email" />
+            </div>
+
+            {{-- password --}}
+            <div class="mb-4">
+              <x-forms.input-text id="password" name="password" placeholder="Ingresa tu password" required
+                type="password" label="Contraseña" labelPosition="left" labelWidth="w-64" :labelRequired="true"
+                wireModel="password" />
+            </div>
+
+            {{-- COLOR --}}
+            <div>
+              <x-forms.input-colors id="color" name="color" label="Colors" wireModel="color"
+                labelPosition="left" />
+            </div>
+          </div>
+
+          {{-- Columna 2 --}}
+          <div class="flex-1">
+            {{-- phone --}}
+            <div class="mb-4">
+              <x-forms.input-text id="phone" name="phone" type="tel" placeholder="Ingresa tu teléfono"
+                labelPosition="left" label="Teléfono" class="form-control" labelWidth="w-64" wireModel="phone" />
+            </div>
+
+            {{-- SELECT --}}
+            <div class="mb-4">
+              <x-forms.input-select id="select" name="select" label="Sexo" labelWidth="w-64" :selected="["1"]"
+                :multiple="false" :select="['1' => 'Masculino', '2' => 'Femenino', '3' => 'No sabe']" />
+            </div>
+
+            {{-- CHECKBOX único --}}
+            <div class="mb-4 border-1 p-4 ">
+              <x-forms.input-checkbox id="checkbox" name="checkbox" label="Género" :checks="[
+                  'male' => 'Masculino',
+                  'female' => 'Femenino',
+                  'other' => 'Otro',
+              ]" checkeds="male"
+                wireModel="checkbox" />
+            </div>
+
+            {{-- CHECKBOX términos --}}
+            <div class="mb-4 border-2 p-4 w-32 rounded-2xl">
+              <x-forms.input-checkbox id="terms" name="terms" :multiple="true"
+                label="Aceptar términos y condiciones" :checks="[
+                    'accept' => 'Acepto los términos y condiciones',
+                ]" {{-- checkeds="accept"  --}}
+                wireModel="acceptedTerms" :labelRequired="true" labelPosition="left" />
+            </div>
+
+          </div>
         </div>
 
-        {{-- email --}}
-        <div class="mb-4">
-          <x-forms.input-text id="email" name="email" type="email" placeholder="Ingresa tu correo electrónico"
-            class="form-control w-64" required label="Correo Electrónico" labelPosition="left" labelWidth="w-64"
-            :labelRequired="true" wireModel="email" />
-        </div>
-
-        {{-- password --}}
-        <div class="mb-4">
-          <x-forms.input-text id="password" name="password" placeholder="Ingresa tu password" required type="password"
-            label="Contraseña" labelPosition="left" labelWidth="w-64" :labelRequired="true" wireModel="password" />
-        </div>
-
-        {{-- phone --}}
-        <div class="mb-4">
-          <x-forms.input-text id="phone" name="phone" type="tel" placeholder="Ingresa tu teléfono"
-            labelPosition="left" label="Teléfono" class="form-control" labelWidth="w-64" wireModel="phone" />
-        </div>
-
-        <div class="mb-4">
-          <x-forms.input-select id="select" name="select" label="Sexo"  labelWidth="w-64" selected="1"
-            :select="['1' => 'Masculino', '2' => 'Femenino', '3' => 'No sabe']" />
-        </div>
-
-        <div class="mb-4">
-          ss
-        </div>
-
-        {{-- submit --}}
-        <div class="flex items-center justify-between">
+        {{-- Botón de enviar --}}
+        <div class="flex items-center justify-between mt-4">
           <button
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit">
