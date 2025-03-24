@@ -4,6 +4,10 @@
 ])
 
 @php
+    dd($messages);
+@endphp
+
+@php
     // Definir estilos y íconos según el tipo de mensaje
     $styles = [
         'success' => [

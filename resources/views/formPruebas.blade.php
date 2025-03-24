@@ -1,11 +1,14 @@
 <x-layouts.app title="Formulario">
   <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     <div class="relative h-full p-4 flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+
       <!-- Mostrar todos los mensajes de sesión -->
+      {{-- @dump(session('messages')); --}}
       <x-forms.flash-message :messages="session("messages", [])" />
+
       <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-200">Formulario de Pruebas</h1>
 
-      <form method="POST" action="{{ route("formulario.store") }}" enctype="multipart/form-data">
+      <form method="POST" action="{{ route('formulario.store') }}" enctype="multipart/form-data">
         @csrf
 
         {{-- Contenedor de dos columnas --}}
@@ -37,6 +40,9 @@
               <x-forms.input-colors id="color" name="color" label="Colors" wireModel="color"
                 labelPosition="left" />
             </div>
+
+            <div><x-forms.input-file id="file-upload" name="file" label="Subir archivo" wireModel="uploadedFile"
+                :labelRequired="true" labelPosition="left" /></div>
           </div>
 
           {{-- Columna 2 --}}
@@ -49,12 +55,12 @@
 
             {{-- SELECT --}}
             <div class="mb-4">
-              <x-forms.input-select id="select" name="select" label="Sexo" labelWidth="w-64" :selected="["1"]"
+              <x-forms.input-select id="select" name="select" label="Sexo" labelWidth="w-64" :selected="['1']"
                 :multiple="false" :select="['1' => 'Masculino', '2' => 'Femenino', '3' => 'No sabe']" />
             </div>
 
             {{-- CHECKBOX único --}}
-            <div class="mb-4 border-1 p-4 ">
+            <div class="mb-4 border-1 p-4">
               <x-forms.input-checkbox id="checkbox" name="checkbox" label="Género" :checks="[
                   'male' => 'Masculino',
                   'female' => 'Femenino',
@@ -65,18 +71,16 @@
 
             {{-- CHECKBOX términos --}}
             <div class="mb-4 border-2 p-4 w-32 rounded-2xl">
-              <x-forms.input-checkbox id="terms" name="terms" :multiple="true"
+              <x-forms.input-checkbox id="terms" name="terms" :multiple="true" required
                 label="Aceptar términos y condiciones" :checks="[
                     'accept' => 'Acepto los términos y condiciones',
                 ]" {{-- checkeds="accept"  --}}
                 wireModel="acceptedTerms" :labelRequired="true" labelPosition="left" />
             </div>
-
           </div>
         </div>
-
         {{-- Botón de enviar --}}
-        <div class="flex items-center justify-between mt-4">
+        <div class="flex-0 items-center justify-between mt-4">
           <button
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit">

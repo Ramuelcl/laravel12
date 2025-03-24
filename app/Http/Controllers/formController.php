@@ -20,7 +20,7 @@ class FormController extends Controller
         'password' => 'required',
         'phone' => 'required|numeric',
         'select' => 'required|integer|min:1',
-        'select' => 'required|array|min:1',
+        'terms' => 'required|min:1',
         'checkbox' => 'required',
         'textarea' => 'required',
         'radio' => 'required',
@@ -53,12 +53,21 @@ class FormController extends Controller
         'name' => 'nombre',
         'phone' => 'teléfono',
         'email' => 'correo electrónico',
+        'terms' => 'términos y condiciones',
+        'select' => 'opción',
+        'checkbox' => 'casilla de verificación',
+        'textarea' => 'área de texto',
+        'radio' => 'opción',
+        'date' => 'fecha',
+        'time' => 'hora',
+        'datetime' => 'fecha y hora',
+        'color' => 'color',
         'message' => 'mensaje',
     ];
 
     public function store(Request $request)
     {
-        dump($request->);
+        // dump($request);
         // Validar los datos del formulario usando las propiedades definidas
         $validated = $request->validate($this->rules, $this->messages, $this->validationAttributes);
 
