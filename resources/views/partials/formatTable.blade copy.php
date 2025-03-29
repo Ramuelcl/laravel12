@@ -1,5 +1,5 @@
-{{-- resources/views/partials/camposTable.blade.php --}}
-@foreach ($table as $campoNombre => $campoInfo)
+{{-- resources/views/partials/formatTable.blade.php --}}
+@foreach ($tables as $campoNombre => $campoInfo)
   @php
     // Obtén el valor del campo actual
     $valorCampo = $data->$campoNombre;
@@ -56,7 +56,7 @@
           <div class="text-left">
             @php
               // Encuentra el registro cuyo ID coincide con $valorCampo utilizando el modelo genérico
-              $relatedData = $data1::find($valorCampo);
+              $relatedData = $model1::find($valorCampo);
             @endphp
             {{ $relatedData ? $relatedData->name : "no encontrada" }}
           </div>
