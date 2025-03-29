@@ -1,21 +1,30 @@
 <?php
-// resources/views/livewire/posts/posts.blade.php
+// filepath: c:\laragon\www\laravel\laravel12\resources\views\livewire\posts\posts.blade.php
 
 use App\Models\Backend\Category as Data1; // Modelo de categorías
+use App\Models\User as Data2; // Modelo de categorías
 use App\Models\Post\Post as Data;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new class extends Component
+{
     public $crudl = 'list'; // create, read, update, delete, list
     public $model = Data::class; // Modelo principal
     public $model1 = Data1::class; // Modelo de categorías
+    public $model2 = Data2::class; // Modelo de usuarios
     public $fields, $tables, $forms, $rules, $messages, $validationAttributes;
     public $datas = [];
     public $categorias = [];
     public $selectedCategories = []; // Opciones seleccionadas
-    protected $listeners = ['selected-updated' => 'handleSelectedUpdated'];
     public $sortField = 'id';
     public $sortDirection = 'desc';
+    // filtro si existe el campo
+    public $is_Active = false;
+    public $activeFilter = ''; // '' (todos), 1 (activos), 0 (inactivos)
+    public $activeCount = 1;
+
+    public $filterButtonText = 'Actives';
+
     public $formData = [];
     public $subTitle = 'List Records';
     public $headerClass = 'px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-left text-xs font-semibold tracking-wide';
@@ -50,6 +59,9 @@ new class extends Component {
         // Inicializar form con valores predeterminados
         foreach ($this->fields as $key => $field) {
             $this->formData[$key] = $field['form']['default'] ?? null;
+            if ($key === 'is_active') {
+                $this->is_Active = true;
+            }
         }
 
         // Asignar el ID del usuario autenticado al campo `user_id`
@@ -63,11 +75,32 @@ new class extends Component {
 
     public function getData()
     {
+        $query = $this->model::with(['category', 'user']);
+
+        if ($this->activeFilter !== '') {
+            $query->where('is_active', $this->activeFilter);
+        }
+
         // Cargar las relaciones 'category' y 'user' junto con los posts
-        $this->datas = $this->model
-            ::with(['category', 'user'])
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->get();
+        $this->datas = $query->orderBy($this->sortField, $this->sortDirection)->get();
+    }
+
+    public function filtreActive()
+    {
+        if ($this->activeCount == 1) {
+            $this->activeFilter = '1';
+            $this->filterButtonText = 'Inactives';
+        } elseif ($this->activeCount == 2) {
+            $this->activeFilter = '0';
+            $this->filterButtonText = 'All';
+        } else {
+            $this->activeCount = 0;
+            $this->activeFilter = '';
+            $this->filterButtonText = 'Active';
+        }
+        $this->activeCount++;
+
+        $this->getData();
     }
 
     public function sortBy($field)
@@ -123,16 +156,28 @@ new class extends Component {
 
     public function editRecord($id)
     {
-        $record = $this->model::find($id)->toArray();
-        foreach ($record as $key => $value) {
-            if (isset($this->formData[$key])) {
-                $this->formData[$key] = $value;
+        $record = $this->model::find($id);
+
+        if ($record) {
+            // Convertir el modelo a un array asociativo
+            $recordArray = $record->toArray();
+
+            // Iterar sobre los campos del formulario
+            foreach ($this->forms as $key => $form) {
+                // Verificar si el campo existe en el registro
+                if (array_key_exists($key, $recordArray)) {
+                    // Asignar el valor del registro al campo del formulario
+                    $this->formData[$key] = $recordArray[$key];
+                }
             }
+// dd($this->formData);
+            $this->crudl = 'update';
+            $this->subtitle();
+        } else {
+            session()->flash('error', 'Record not found.');
         }
-        $this->subTitle = 'Edit Record';
-        $this->crudl = 'update';
-        $this->subtitle();
     }
+
 
     public function showRecord($id)
     {
@@ -173,115 +218,114 @@ new class extends Component {
 };
 ?>
 <div>
-  <div class="relative mb-6 w-full">
-    <flux:heading size="xl" level="1">{{ __('Posts') }}</flux:heading>
-    <flux:subheading size="lg" class="mb-3 {{ $this->crudl === 'delete' ? 'text-red-800 font-extrabold' : '' }}">
-      {{ __($subTitle) }}
-    </flux:subheading>
-    <flux:separator variant="subtle" />
-  </div>
-
-  @if ($crudl === 'list')
-    <!-- Tabla de listado -->
-    <div class="overflow-x-auto">
-      <div class="pb-2">
-        <button wire:click="addRecord()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-          {{ __('new Record') }}
-        </button>
-      </div>
-      <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">
-        <thead
-          class="bg-neutral text-gray-700 dark:bg-neutral-800 dark:text-gray-300 -50 text-xs font-semibold tracking-wide">
-          <tr>
-            @foreach ($tables as $key => $table)
-              @if ($table['visible'])
-                <th scope="col"
-                  class="{{ $headerClass }} cursor-pointer {{ $table['sortable'] ? 'uppercase' : 'capitalize' }}"
-                  wire:click="{{ $table['sortable'] ? 'sortBy(\'' . $key . '\')' : '' }}">
-                  {{ __($table['title']) }}
-                  @if ($sortField === $key)
-                    <span>{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                  @endif
-                </th>
-              @endif
-            @endforeach
-          </tr>
-        </thead>
-        <tbody>
-          @if ($datas->isNotEmpty())
-            @foreach ($datas as $data)
-              <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                @include('partials.formatTable', ['data' => $data, 'tables' => $tables])
-                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
-                  <button wire:click="editRecord({{ $data->id }})"
-                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-                    {{ __('Edit') }}
-                  </button>
-                  <button wire:click="showRecord({{ $data->id }})"
-                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-                    {{ __('Read') }}
-                  </button>
-                  <button wire:click="deleteRecord({{ $data->id }})"
-                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-                    {{ __('Delete') }}
-                  </button>
-                </td>
-              </tr>
-            @endforeach
-          @else
-            <tr>
-              <td colspan="{{ count($tables) }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                No hay datos disponibles.
-              </td>
-            </tr>
-          @endif
-        </tbody>
-      </table>
+    <div class="relative mb-6 w-full">
+        <flux:heading size="xl" level="1">{{ __('Posts') }}</flux:heading>
+        <flux:subheading size="lg" class="mb-3 {{ $this->crudl === 'delete' ? 'text-red-800 font-extrabold' : '' }}">
+            {{ __($subTitle) }}
+        </flux:subheading>
+        <flux:separator variant="subtle" />
     </div>
-  @else
-    <!-- Formulario dinámico -->
-    <form wire:submit.prevent="saveRecord">
-      <fieldset {{ $crudl === 'read' || $crudl === 'delete' ? 'disabled' : '' }}>
-        <div class="space-y-4">
-          @foreach ($forms as $key => $form)
-            @if ($form['visibility'][$crudl] ?? false)
-              <div>
-                <label for="{{ $key }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ __($form['title']) }}
-                </label>
-                @if ($form['type'] === 'text' || $form['type'] === 'date')
-                  <input type="{{ $form['type'] }}" id="{{ $key }}"
-                    wire:model="formData.{{ $key }}" placeholder="{{ __($form['placeholder'] ?? '') }}"
-                    class="{{ $classInput }}">
-                @elseif ($form['type'] === 'textarea')
-                  <textarea id="{{ $key }}" wire:model="formData.{{ $key }}"
-                    placeholder="{{ __($form['placeholder'] ?? '') }}" class="{{ $classInput }}"></textarea>
-                @elseif ($form['type'] === 'select')
-                  <select id="{{ $key }}" wire:model="formData.{{ $key }}"
-                    class="{{ $classInput }}">
-                    <option value="">{{ __($form['placeholder'] ?? '-- Seleccione --') }}</option>
-                    @if ($key === 'category_id')
-                      @foreach ($categorias as $id => $name)
-                        <option value="{{ $id }}">{{ $name }}</option>
-                      @endforeach
-                    @endif
-                  </select>
-                @endif
-              </div>
-            @endif
-          @endforeach
-        </div>
-        <div class="flex justify-end space-x-4 mt-4">
-          <button type="button" wire:click="cancelRecord" 
-            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-            {{ __('Cancel') }}
-          </button>
-          <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-            {{ __('Save') }}
-          </button>
-        </div>
-      </fieldset>
-    </form>
-  @endif
-</div>
 
+    @if ($crudl === 'list')
+        <!-- Tabla de listado -->
+        <div class="overflow-x-auto">
+            <div class="pb-2 flex justify-between">
+                <div>
+                    <button wire:click="addRecord()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                        {{ __('new Record') }}
+                    </button>
+                </div>
+                @if ($is_Active)
+                    <div>
+                        <div>
+                            <button wire:click="filtreActive()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                                {{ __($filterButtonText) }}
+                            </button>
+                        </div>
+                    </div>
+                @endif
+            </div>
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                <thead class="bg-neutral text-gray-700 dark:bg-neutral-800 dark:text-gray-300 -50 text-xs font-semibold tracking-wide">
+                    <tr>
+                        @foreach ($tables as $key => $table)
+                            @if ($table['visible'])
+                                <th scope="col" class="{{ $headerClass }} cursor-pointer {{ $table['sortable'] ? 'uppercase' : 'capitalize' }}" wire:click="{{ $table['sortable'] ? 'sortBy(\'' . $key . '\')' : '' }}">
+                                    {{ __($table['title']) }}
+                                    @if ($sortField === $key)
+                                        <span>{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                                    @endif
+                                </th>
+                            @endif
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @if ($datas->isNotEmpty())
+                        @foreach ($datas as $data)
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                @include('partials.formatTable', ['data' => $data, 'tables' => $tables])
+                                <td class="border-none px-4 py-1 text-center text-gray-900 dark:text-white">
+                                    <button wire:click="editRecord({{ $data->id }})" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                                        {{ __('Edit') }}
+                                    </button>
+                                    <button wire:click="showRecord({{ $data->id }})" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                                        {{ __('Read') }}
+                                    </button>
+                                    <button wire:click="deleteRecord({{ $data->id }})" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                                        {{ __('Delete') }}
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="{{ count($tables) }}" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                No hay datos disponibles.
+                            </td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
+    @else
+        <!-- Formulario dinámico -->
+        <form wire:submit.prevent="saveRecord">
+            <fieldset {{ $crudl === 'read' || $crudl === 'delete' ? 'disabled' : '' }}>
+                <div class="space-y-4">
+                    @foreach ($forms as $key => $form)
+                        @if ($form['visibility'][$crudl] ?? false)
+                            <div>
+                                <label for="{{ $key }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ __($form['title']) }}
+                                </label>
+                                @if ($form['type'] === 'text' || $form['type'] === 'date')
+                                    <input type="{{ $form['type'] }}" id="{{ $key }}" wire:model="formData.{{ $key }}" placeholder="{{ __($form['placeholder'] ?? '') }}" class="{{ $classInput }}" {{ ($form['disabled'] ?? false) ? 'disabled' : '' }}>
+                                @elseif ($form['type'] === 'textarea')
+                                    <textarea id="{{ $key }}" wire:model="formData.{{ $key }}" placeholder="{{ __($form['placeholder'] ?? '') }}" class="{{ $classInput }}" {{ ($form['disabled'] ?? false) ? 'disabled' : '' }}></textarea>
+                                @elseif ($form['type'] === 'select')
+                                    <select id="{{ $key }}" wire:model="formData.{{ $key }}" class="{{ $classInput }}" {{ ($form['disabled'] ?? false) ? 'disabled' : '' }}>
+                                        <option value="">{{ __($form['placeholder'] ?? '-- Seleccione --') }}</option>
+                                        @if ($key === 'category_id')
+                                            @foreach ($categorias as $id => $name)
+                                                <option value="{{ $id }}" @if (isset($formData[$key]) && $formData[$key] == $id) selected @endif>{{ $name }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                @endif
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+                <div class="flex justify-end space-x-4 mt-4">
+                    <button type="button" wire:click="cancelRecord" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                        {{ __('Cancel') }}
+                    </button>
+                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+                        {{ __('Save') }}
+                    </button>
+                </div>
+            </fieldset>
+        </form>
+    @endif
+</div>

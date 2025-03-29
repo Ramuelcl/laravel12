@@ -3,7 +3,7 @@
 
 return [
     'id' => [
-        'table' => ['title' => 'Id', 'sortable' => true, 'visible' => true, 'type' => 'text'],
+        'table' => ['title' => 'Id', 'sortable' => true, 'visible' => true, 'type' => 'integer'],
         'form' => [
             'title' => 'Id',
             'type' => 'text',
@@ -59,7 +59,7 @@ return [
         'attribute' => 'contenido',
     ],
     'category_id' => [
-        'table' => ['title' => 'Category', 'sortable' => true, 'visible' => true, 'type' => 'select'],
+        'table' => ['title' => 'Category', 'sortable' => true, 'visible' => true, 'type' => 'select', 'model' => 'model1'],
         'form' => [
             'title' => 'Category',
             'type' => 'select',
@@ -80,7 +80,8 @@ return [
         'attribute' => 'categoría',
     ],
     'user_id' => [
-        'table' => ['title' => 'User', 'sortable' => true, 'visible' => true, 'type' => 'text'],
+        'table' => ['title' => 'User', 'sortable' => true, 'visible' => true, 'type' => 'select', 'model' => 'model2'],
+        // Cambié 'model' a 'model2' para diferenciarlo de category_id
         'form' => [
             'title' => 'User',
             'type' => 'text',
@@ -125,6 +126,7 @@ return [
             'title' => 'Image',
             'sortable' => false,
             'type' => 'image',
+            'visible' => false,
         ],
         'form' => [
             'title' => 'Image',
@@ -144,7 +146,7 @@ return [
         'attribute' => 'path',
     ],
     'state' => [
-        'table' => ['title' => 'Status', 'sortable' => true, 'visible' => true, 'type' => 'boolean'],
+        'table' => ['title' => 'Status', 'sortable' => true, 'visible' => true, 'type' => 'enum'],
         'form' => [
             'title' => 'Status',
             'type' => 'select',

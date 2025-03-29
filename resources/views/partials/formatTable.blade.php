@@ -16,6 +16,11 @@
         <td class="border-none px-4 py-1 text-gray-900 dark:text-white">
             @switch($tipoCampo)
                 @case('integer')
+                    <div class="text-right">
+                        {{$valorCampo }}
+                    </div>
+                    @break
+
                 @case('decimal')
                     <div class="text-right">
                         {{ number_format($valorCampo, $campoInfo["decimal"] ?? 2, '.', ',') }}
@@ -30,7 +35,7 @@
 
                 @case('boolean')
                     <div class="text-center">
-                        <x-forms.on-off :valor="$valorCampo" formato="yes/no" />
+                        <x-forms.on-off :value="$valorCampo" type="yes/no" />
                     </div>
                     @break
 
@@ -55,15 +60,25 @@
                     </div>
                     @break
 
-                @case('select')
-                    <div class="text-left">
-                        @php
-                            // Encuentra el registro cuyo ID coincide con $valorCampo utilizando el modelo genérico
-                            $relatedData = isset($data1) ? $data1::find($valorCampo) : null;
-                        @endphp
-                        {{ $relatedData ? $relatedData->name : 'no encontrada' }}
-                    </div>
-                    @break
+               @case('select')
+    <div class="text-left">
+        @php
+            $modelName = $campoInfo['model'] ?? null;
+            $relatedData = null;
+
+            if ($modelName) {
+                // Convertir el nombre del modelo a una variable
+                $model = isset($$modelName) ? $$modelName : null;
+
+                if ($model) {
+                    // Encuentra el registro cuyo ID coincide con $valorCampo utilizando el modelo dinámico
+                    $relatedData = $model::find($valorCampo);
+                }
+            }
+        @endphp
+        {{ $relatedData ? $relatedData->name : 'no encontrada' }}
+    </div>
+    @break
 
                 @case('image')
                     <div class="h-10 w-10 text-center">

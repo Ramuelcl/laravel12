@@ -1,10 +1,10 @@
 {{-- resources/views/components/forms/on-off.blade.php --}}
-@props(['value' => '0', 'type' => 'ticket-x'])
+@props(['value'=>'0', 'type' => 'On/Off'])
 
 @php
     // Convertir el valor a booleano para simplificar la lógica
     $boolean = (bool) $value;
-
+// dd($boolean,$value);
     // Definir el texto basado en el tipo
     switch ($type) {
         case 'On/Off':
