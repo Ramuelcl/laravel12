@@ -1,5 +1,4 @@
 <?php
-// config/camposPost.php
 
 return [
     'id' => [
@@ -30,7 +29,7 @@ return [
                 'delete' => true,
             ],
         ],
-        'rule' => ['required|string|min:3|max:55'],
+        'rule' => ['required', 'string', 'min:3', 'max:55'],
         'message' => [
             'required' => 'El campo :attibute es obligatorio.',
             'min' => 'El :attibute debe tener al menos 3 caracteres.',
@@ -51,7 +50,7 @@ return [
                 'delete' => true,
             ],
         ],
-        'rule' => ['required|string|min:10'],
+        'rule' => ['required', 'string', 'min:10'],
         'message' => [
             'required' => 'El campo contenido es obligatorio.',
             'min' => 'El contenido debe tener al menos 10 caracteres.',
@@ -71,7 +70,7 @@ return [
                 'delete' => true,
             ],
         ],
-        'rule' => ['required|integer|min:1'],
+        'rule' => ['required', 'integer', 'min:1'],
         'message' => [
             'required' => 'Debe seleccionar una categoría.',
             'integer' => 'La categoría debe ser un número válido.',
@@ -81,7 +80,6 @@ return [
     ],
     'user_id' => [
         'table' => ['title' => 'User', 'sortable' => true, 'visible' => true, 'type' => 'select', 'model' => 'model2'],
-        // Cambié 'model' a 'model2' para diferenciarlo de category_id
         'form' => [
             'title' => 'User',
             'type' => 'text',
@@ -114,10 +112,9 @@ return [
                 'delete' => false,
             ],
         ],
-        'rule' => ['required|string|unique:posts,slug'],
+        'rule' => ['required', 'string'],
         'message' => [
             'required' => 'El campo slug es obligatorio.',
-            'unique' => 'El slug ya existe. Debe ser único.',
         ],
         'attribute' => 'slug',
     ],
@@ -139,29 +136,30 @@ return [
                 'delete' => true,
             ],
         ],
-        'rule' => ['string'],
+        'rule' => ['nullable', 'string'],
         'message' => [
-            'string' => 'El campo :attribute es obligatorio.',
+            'string' => 'El campo :attribute debe ser una cadena de texto.',
         ],
         'attribute' => 'path',
     ],
     'state' => [
-        'table' => ['title' => 'Status', 'sortable' => true, 'visible' => true, 'type' => 'enum'],
+        'table' => ['title' => 'Status', 'sortable' => true, 'visible' => true, 'type' => 'text'],
         'form' => [
             'title' => 'Status',
-            'type' => 'select',
+            'type' => 'selectWithOptions',
             'placeholder' => '',
             'visibility' => [
-                'create' => false,
+                'create' => true,
                 'read' => true,
                 'update' => true,
                 'delete' => true,
             ],
+            'options' => ['draft' => 'Draft', 'new' => 'New', 'editing' => 'Editing', 'published' => 'Published', 'archived' => 'Archived'],
         ],
-        'rule' => ['required|boolean'],
+        'rule' => ['required', 'in:draft,new,editing,published,archived'],
         'message' => [
             'required' => 'El estado es obligatorio.',
-            'boolean' => 'El estado debe ser un valor booleano.',
+            'in' => 'El estado debe ser uno de los valores permitidos.',
         ],
         'attribute' => 'estado',
     ],
@@ -172,13 +170,13 @@ return [
             'type' => 'select',
             'placeholder' => '',
             'visibility' => [
-                'create' => false,
+                'create' => true,
                 'read' => true,
                 'update' => true,
                 'delete' => true,
             ],
         ],
-        'rule' => ['required|boolean'],
+        'rule' => ['required', 'boolean'],
         'message' => [
             'required' => 'El campo activo es obligatorio.',
             'boolean' => 'El campo activo debe ser un valor booleano.',

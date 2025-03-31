@@ -27,7 +27,7 @@ return new class extends Migration
 
             $table->string('slug')->unique();
             $table->string('image_path', 255)->nullable();
-            $table->enum('state', ['new', 'editing', 'published'])->default('new');
+            $table->enum('state', ['draft', 'new', 'editing', 'published', 'archived'])->default('new');
             $table->boolean('is_active')->default(false);
             $table->integer('views')->default(0);
             $table->integer('likes')->default(0);
