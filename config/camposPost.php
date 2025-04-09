@@ -182,6 +182,8 @@ return [
             'boolean' => 'El campo activo debe ser un valor booleano.',
         ],
         'attribute' => 'activo',
+        'search' => true, // Habilitar búsqueda en este campo
+
     ],
     'created_at' => [
         'table' => ['title' => 'Created At', 'sortable' => true, 'visible' => true, 'type' => 'date'],
@@ -197,5 +199,6 @@ return [
             ],
         ],
         'rule' => [], // Sin reglas para created_at (se genera automáticamente)
+        'search' => true, // Habilitar búsqueda en este campo
     ],
 ];

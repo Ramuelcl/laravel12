@@ -13,7 +13,7 @@ class Category extends Model
     protected $table = 'categories'; // Nombre de la tabla
     protected $primaryKey = 'id'; //
 
-    protected $fillable = ['name', 'slug', 'is_active']; // Ejemplo de campos permitidos
+    protected $fillable = ['name', 'is_active']; // Ejemplo de campos permitidos
 
     public function posts()
     {

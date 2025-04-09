@@ -13,14 +13,27 @@ class Post extends Model
 {
     /** @use HasFactory<\Database\Factories\Post\PostFactory> */
     use HasFactory;
-    protected $fillable = ['title', 'slug', 'content', 'category_id', 'state', 'user_id', 'is_active'];
+    protected $table = 'posts';
+    protected $fillable = ['titulo', 'slug', 'content', 'category_id', 'state', 'user_id', 'is_active', 'image_path', 'views', 'likes', 'dislikes', 'comments'];
+
+    public $arrStates = [
+        'draft' => 'Borrador',
+        'new' => 'Nuevo',
+        'editing' => 'Editando',
+        'published' => 'Publicado',
+        'archived' => 'Archivado',
+        'deleted' => 'Eliminado'
+    ];
+    protected $casts = [
+        'is_active' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     // Mutador para generar el slug automáticamente
-    public function setTitleAttribute($value)
-    {
-        $this->attributes['title'] = $value;
-        $this->attributes['slug'] = Str::slug($value);
-    }
+    // public function setTitleAttribute($value) {
+    //     $this->attributes['slug'] = Str::slug($value);
+    // }
 
     public function tags()
     {

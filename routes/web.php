@@ -25,6 +25,10 @@ Route::view('posts', 'posts.posts')
     ->middleware(['auth', 'verified'])
     ->name('posts');
 
+Route::view('datatable', 'datatable')
+    ->middleware(['auth', 'verified'])
+    ->name('datatable');
+
 Route::view('main', 'main')
     ->middleware(['auth', 'verified'])
     ->name('main');

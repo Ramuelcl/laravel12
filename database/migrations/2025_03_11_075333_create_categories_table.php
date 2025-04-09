@@ -14,12 +14,11 @@ return new class extends Migration
     {
         Schema::create($this->table, function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->integer('posts_count')->default(0);
+            $table->string('name', 100)->unique();
+            $table->string('slug', 100);
             $table->boolean('is_active')->default(true);
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -11,7 +11,7 @@ class Tag extends Model
     /** @use HasFactory<\Database\Factories\Backend\TagFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'color', 'is_active']; // Ejemplo de campos permitidos
+    protected $fillable = ['name',  'color', 'is_active']; // Ejemplo de campos permitidos
 
     public function posts()
     {
